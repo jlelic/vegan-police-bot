@@ -38,7 +38,7 @@ client.on("ready", () => {
       }
     });
   });
-  client.user.setActivity(`blueberries with ketchup`);
+  client.user.setActivity(`blueberries with ketchup and milk powder`);
 });
 
 
@@ -72,6 +72,7 @@ client.on("message", async message => {
       await message.channel.send(`They are already in the vegan jail, <@${message.author.id}>!`);
       return;
     }
+    arrestedUsers.add(criminalId);
 
     await message.channel.send(`🚓🚓 WEEOOWEEOOWEEOO 🚓🚓
 🔫👮🌾  THIS IS VEGAN POLICE🔫👮🍃
@@ -79,19 +80,21 @@ client.on("message", async message => {
 🌷 You are accused of the following crime: ${crime} 🌱
 🌳👨‍⚖️ <#${courtChannel.id}> will decide your fate! 👩🏼‍⚖️🍀`);
 
-    const courtMessage = await courtChannel.send(`<@${criminalId}> has been accused of "${crime}" by <@${message.author.id}>!
+    const courtMessage = await courtChannel.send(`<@${criminalId}> has been accused of "${crime}" by <@${message.author.id}> in <#${message.channel.id}>!
 <:${guiltyEmoji.name}:${guiltyEmoji.id}> if you think they should be punished, <:${notGuiltyEmoji.name}:${notGuiltyEmoji.id}> if not!'
 You have ${VOTING_TIME} seconds to vote!`);
-    await courtMessage.react(guiltyEmoji);
-    await courtMessage.react(notGuiltyEmoji);
-    setTimeout(() => {
+    const guiltyPlaceholderReaction = await courtMessage.react(guiltyEmoji);
+    const notGuiltyPlaceholderReaction = await courtMessage.react(notGuiltyEmoji);
+    setTimeout(async () => {
       const guiltyCount = courtMessage.reactions.get(`${guiltyEmoji.name}:${guiltyEmoji.id}`).count - 1;
       const notGuiltyCount = courtMessage.reactions.get(`${notGuiltyEmoji.name}:${notGuiltyEmoji.id}`).count - 1;
+      await guiltyPlaceholderReaction.remove();
+      await notGuiltyPlaceholderReaction.remove();
       if (notGuiltyCount >= guiltyCount) {
         courtChannel.send(`The voting is over, result: ${guiltyCount}:${notGuiltyCount}. You're free to go!`);
         return;
       }
-      const criminalGm = criminalId.startsWith('!') ? message.guild.owner : message.guild.members.get(criminalId);
+      let criminalGm = message.guild.members.get(criminalId.replace(/\!/g, '')) || message.guild.owner;
       criminalGm.addRole(jailedRole, crime);
       courtChannel.send(`The voting is over, result: ${guiltyCount}:${notGuiltyCount}. <@${criminalId}>, you are going to the vegan jail and will be unable to gain xp for ${JAIL_TIME} minutes!`);
       setTimeout(() => {
@@ -116,19 +119,6 @@ Example:
 arrest <@${message.author.id}> Dating omni
 `);
     return;
-  }
-
-  if(message.content.toLowerCase().startsWith('id ')){
-    const arr = message.content.split(' ');
-    if (arr.length < 2) {
-      await message.channel.send(`I don't know who to arrest, <@${message.author.id}>!!`);
-      return;
-    }
-
-    if (!arr[1].startsWith('<@') || !arr[1].endsWith('>')) {
-      await message.channel.send(`You need to @ the user you want to id, <@${message.author.id}>!!`);
-      return;
-    }
   }
 });
 
