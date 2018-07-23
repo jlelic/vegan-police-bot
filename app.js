@@ -46,12 +46,12 @@ client.on("message", async message => {
   if (message.author.bot) return;
 
   // if (message.author.username !== 'Jožo') return;
-  if (message.content.startsWith('arest')) {
+  if (message.content.startsWith('arest ')) {
     await message.channel.send(`It's "arrest", not "arest", you illiterate fuck`);
     return;
   }
 
-  if (message.content.toLowerCase().startsWith('arrest')) {
+  if (message.content.toLowerCase().startsWith('arrest ')) {
     const arr = message.content.split(' ');
     if (arr.length < 2) {
       await message.channel.send(`I don't know who to arrest, <@${message.author.id}>!!`);
@@ -61,12 +61,17 @@ client.on("message", async message => {
       return;
     }
     if (!arr[1].startsWith('<@') || !arr[1].endsWith('>')) {
-      await message.channel.send(`You need to @ the user you want me to arrest, <@${message.author.id}>!!`);
+      await message.channel.send(`You need to @ link the user you want me to arrest, <@${message.author.id}>!!`);
       return;
     }
 
     const criminalId = arr[1].slice(2, arr[1].length - 1);
     const crime = arr.slice(2).join(' ');
+
+    if(crime.replace(/[\W_]+/g,'').toLowerCase().includes('gender')) {
+      await message.channel.send(`NO MORE ARRESTING FOR GENDERING YOU ${['IMBECILE', 'IDIOT', 'TWAT', 'DIMWIT', 'DUNCE', 'DORK', 'MORON'][Math.round(Math.random()*7)]}`);
+      return;
+    }
 
     if (arrestedUsers.has(criminalId)) {
       await message.channel.send(`They are already in the vegan jail, <@${message.author.id}>!`);
